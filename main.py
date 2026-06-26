@@ -9,6 +9,8 @@ DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 @app.post("/")
 async def main(request: Request):
+    # ВРЕМЕННО: возвращаем тестовый ответ, не обращаясь к DeepSeek
+    return {"response": {"text": "Привет! Это тестовый ответ от сервера."}}
     body = await request.json()
     user_text = body["request"]["original_utterance"]
 
@@ -30,4 +32,4 @@ async def main(request: Request):
             "text": answer
         }
     }
-    return {"response": {"text": "Привет! Это тестовый ответ от сервера."}}
+   
