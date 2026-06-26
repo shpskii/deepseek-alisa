@@ -34,7 +34,7 @@ async def main(request: Request):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "nvidia/nemotron-3-ultra:free",  # автоматически выберет лучшую бесплатную модель
+        "model": "openrouter/free",  # автоматически выберет лучшую бесплатную модель
         "messages": [{"role": "user", "content": user_text}],
         "max_tokens": 300,
         "temperature": 0.7
