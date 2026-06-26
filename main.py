@@ -30,3 +30,4 @@ async def main(request: Request):
             "text": answer
         }
     }
+    return {"response": {"text": "Привет! Это тестовый ответ от сервера."}}
