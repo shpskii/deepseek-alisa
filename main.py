@@ -12,7 +12,6 @@ async def main(request: Request):
     body = await request.json()
     user_text = body.get("request", {}).get("original_utterance", "")
 
-    # Если сообщение пустое
     if not user_text:
         return {
             "version": body.get("version", "1.0"),
@@ -20,23 +19,21 @@ async def main(request: Request):
             "response": {"text": "Я не расслышала вопрос. Повторите, пожалуйста."}
         }
 
-    # Проверка наличия API-ключа
     if not OPENROUTER_API_KEY:
         return {
             "version": body.get("version", "1.0"),
             "session": body.get("session"),
-            "response": {"text": "Извините, API-ключ OpenRouter не настроен. Обратитесь к разработчику."}
+            "response": {"text": "Извините, API-ключ OpenRouter не настроен."}
         }
 
-    # Заголовки и тело запроса к OpenRouter
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "openrouter/free",  # автоматически выберет лучшую бесплатную модель
+        "model": "openrouter/free",
         "messages": [{"role": "user", "content": user_text}],
-        "max_tokens": 300,
+        "max_tokens": 500,
         "temperature": 0.7
     }
 
@@ -45,18 +42,20 @@ async def main(request: Request):
             response = await client.post(OPENROUTER_API_URL, headers=headers, json=payload)
             response_data = response.json()
 
-            # Если OpenRouter вернул ошибку
             if "error" in response_data:
                 error_msg = response_data["error"].get("message", "Неизвестная ошибка")
                 answer = f"Ошибка OpenRouter: {error_msg}"
             else:
-                answer = response_data["choices"][0]["message"]["content"]
+                # Извлекаем текст, даже если он None
+                answer = response_data.get("choices", [{}])[0].get("message", {}).get("content")
+                # Если ответ пустой или None, подставляем заглушку
+                if not answer:
+                    answer = "Извините, я не смогла сформулировать ответ. Попробуйте переформулировать вопрос."
     except httpx.TimeoutException:
         answer = "Превышено время ожидания ответа от OpenRouter. Попробуйте позже."
     except Exception as e:
         answer = f"Произошла ошибка при обращении к OpenRouter: {str(e)}"
 
-    # Формируем корректный ответ для Алисы
     return {
         "version": body.get("version", "1.0"),
         "session": body.get("session"),
